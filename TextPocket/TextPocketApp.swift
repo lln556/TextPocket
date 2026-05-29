@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 @main
 struct TextPocketApp: App {
@@ -13,29 +12,35 @@ struct TextPocketApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    var popover: NSPopover!
-    var statusItem: NSStatusItem!
-    var viewModel: ClipboardViewModel!
-
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        // 初始化 ViewModel
-        viewModel = ClipboardViewModel()
-
-        // 创建浮窗
-        popover = NSPopover()
+    lazy var popover: NSPopover = {
+        let popover = NSPopover()
         popover.contentSize = NSSize(width: 300, height: 400)
         popover.behavior = .transient
-        popover.contentViewController = NSHostingController(
-            rootView: PopoverView(viewModel: viewModel)
-        )
+        return popover
+    }()
 
-        // 创建菜单栏图标
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    lazy var statusItem: NSStatusItem = {
+        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "TextPocket")
             button.action = #selector(togglePopover)
             button.target = self
         }
+        return statusItem
+    }()
+
+    lazy var viewModel: ClipboardViewModel = {
+        return ClipboardViewModel()
+    }()
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // 设置 Popover 内容
+        popover.contentViewController = NSHostingController(
+            rootView: PopoverView(viewModel: viewModel)
+        )
+
+        // 触发 statusItem 初始化
+        _ = statusItem
     }
 
     @objc func togglePopover() {
