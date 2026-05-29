@@ -24,13 +24,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "TextPocket")
-            button.action = #selector(togglePopover)
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+            button.action = #selector(handleStatusItemClick)
             button.target = self
         }
-        // 右键菜单
-        let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "退出 TextPocket", action: #selector(quit), keyEquivalent: "q"))
-        statusItem.menu = menu
         return statusItem
     }()
 
@@ -68,6 +65,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.viewModel.addFromClipboard(text)
             }
         }
+    }
+
+    @objc func handleStatusItemClick(_ sender: NSStatusBarButton) {
+        guard let event = NSApp.currentEvent else { return }
+        if event.type == .rightMouseUp {
+            showStatusMenu()
+        } else {
+            togglePopover()
+        }
+    }
+
+    private func showStatusMenu() {
+        let menu = NSMenu()
+        menu.addItem(NSMenuItem(title: "退出 TextPocket", action: #selector(quit), keyEquivalent: "q"))
+        statusItem.menu = menu
+        statusItem.button?.performClick(nil)
+        statusItem.menu = nil
     }
 
     @objc func togglePopover() {
