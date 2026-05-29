@@ -36,9 +36,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // 检查辅助功能权限
-        _ = AccessibilityService.shared.checkAccessibility()
-
         // 设置 SwiftData 容器
         let modelContainer = try! ModelContainer(for: ClipboardItem.self)
         viewModel.setup(modelContext: modelContainer.mainContext)

@@ -32,7 +32,9 @@ final class PasteService {
         copyToClipboard(text)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.simulatePaste()
+            if AccessibilityService.shared.checkAccessibility() {
+                self.simulatePaste()
+            }
         }
     }
 }
