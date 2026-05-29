@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import ApplicationServices
 
 final class AccessibilityService {
