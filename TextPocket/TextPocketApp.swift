@@ -27,6 +27,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.action = #selector(togglePopover)
             button.target = self
         }
+        // 右键菜单
+        let menu = NSMenu()
+        menu.addItem(NSMenuItem(title: "退出 TextPocket", action: #selector(quit), keyEquivalent: "q"))
+        statusItem.menu = menu
         return statusItem
     }()
 
@@ -74,5 +78,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             }
         }
+    }
+
+    @objc func quit() {
+        ClipboardMonitor.shared.stop()
+        HotkeyService.shared.unregister()
+        NSApplication.shared.terminate(nil)
     }
 }

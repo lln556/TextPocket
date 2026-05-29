@@ -25,9 +25,9 @@ cp "${EXECUTABLE}" "${APP_BUNDLE}/Contents/MacOS/"
 # 复制 Info.plist
 cp TextPocket/Info.plist "${APP_BUNDLE}/Contents/"
 
-# 复制资源（如有）
-if [ -d "TextPocket/Resources/Assets.xcassets" ]; then
-    cp -R TextPocket/Resources/Assets.xcassets "${APP_BUNDLE}/Contents/Resources/"
+# 复制图标
+if [ -f "TextPocket/Resources/AppIcon.icns" ]; then
+    cp TextPocket/Resources/AppIcon.icns "${APP_BUNDLE}/Contents/Resources/"
 fi
 
 # 创建 PkgInfo
