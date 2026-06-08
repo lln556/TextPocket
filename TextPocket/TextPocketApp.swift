@@ -7,7 +7,7 @@ struct TextPocketApp: App {
 
     var body: some Scene {
         Settings {
-            EmptyView()
+            SettingsView()
         }
     }
 }
@@ -34,6 +34,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     lazy var viewModel: ClipboardViewModel = {
         return ClipboardViewModel()
     }()
+    private var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 设置 SwiftData 容器
@@ -99,6 +100,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showStatusMenu() {
         let menu = NSMenu()
+        menu.addItem(NSMenuItem(title: "偏好设置...", action: #selector(showSettings), keyEquivalent: ","))
+        menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "退出 TextPocket", action: #selector(quit), keyEquivalent: "q"))
         statusItem.menu = menu
         statusItem.button?.performClick(nil)
@@ -113,6 +116,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             }
         }
+    }
+
+    @objc func showSettings() {
+        NSApp.activate(ignoringOtherApps: true)
+        if settingsWindow == nil {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 400, height: 120),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = "TextPocket 偏好设置"
+            window.contentViewController = NSHostingController(rootView: SettingsView())
+            window.center()
+            window.isReleasedWhenClosed = false
+            settingsWindow = window
+        }
+
+        settingsWindow?.makeKeyAndOrderFront(nil)
     }
 
     @objc func quit() {
