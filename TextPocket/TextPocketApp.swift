@@ -48,6 +48,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // 触发 statusItem 初始化
         _ = statusItem
+        _ = AccessibilityService.shared.requestAccessibility()
 
         // 注册全局快捷键
         let hotkeyService = HotkeyService.shared

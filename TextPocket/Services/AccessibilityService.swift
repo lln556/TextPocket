@@ -9,6 +9,11 @@ final class AccessibilityService {
 
     /// 检查辅助功能权限
     func checkAccessibility() -> Bool {
+        AXIsProcessTrusted()
+    }
+
+    /// 请求辅助功能权限
+    func requestAccessibility() -> Bool {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true]
         return AXIsProcessTrustedWithOptions(options as CFDictionary)
     }

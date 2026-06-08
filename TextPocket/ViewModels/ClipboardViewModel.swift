@@ -56,7 +56,8 @@ final class ClipboardViewModel: ObservableObject {
             sortBy: [SortDescriptor(\.lastUsedAt, order: .reverse)]
         )
         do {
-            items = try modelContext.fetch(descriptor)
+            let fetchedItems = try modelContext.fetch(descriptor)
+            items = mergeDuplicateItems(fetchedItems, in: modelContext)
         } catch {
             items = []
             print("Failed to fetch clipboard items: \(error)")
@@ -183,5 +184,34 @@ final class ClipboardViewModel: ObservableObject {
             modelContext.rollback()
             print("Failed to save clipboard item: \(error)")
         }
+    }
+
+    private func mergeDuplicateItems(_ fetchedItems: [ClipboardItem], in modelContext: ModelContext) -> [ClipboardItem] {
+        var mergedItems: [ClipboardItem] = []
+        var itemsByKey: [String: ClipboardItem] = [:]
+        var didMerge = false
+
+        for item in fetchedItems {
+            let key = "\(item.sourceRaw)\u{1F}\(item.content)"
+            if let existing = itemsByKey[key] {
+                existing.useCount += item.useCount
+                existing.createdAt = min(existing.createdAt, item.createdAt)
+                existing.lastUsedAt = max(existing.lastUsedAt, item.lastUsedAt)
+                if existing.title == nil {
+                    existing.title = item.title
+                }
+                modelContext.delete(item)
+                didMerge = true
+            } else {
+                itemsByKey[key] = item
+                mergedItems.append(item)
+            }
+        }
+
+        if didMerge {
+            save(modelContext)
+        }
+
+        return mergedItems.sorted { $0.lastUsedAt > $1.lastUsedAt }
     }
 }
