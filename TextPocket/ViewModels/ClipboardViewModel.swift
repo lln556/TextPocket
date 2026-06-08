@@ -55,7 +55,12 @@ final class ClipboardViewModel: ObservableObject {
         let descriptor = FetchDescriptor<ClipboardItem>(
             sortBy: [SortDescriptor(\.lastUsedAt, order: .reverse)]
         )
-        items = (try? modelContext.fetch(descriptor)) ?? []
+        do {
+            items = try modelContext.fetch(descriptor)
+        } catch {
+            items = []
+            print("Failed to fetch clipboard items: \(error)")
+        }
     }
 
     /// 手动添加或更新记录
@@ -67,7 +72,7 @@ final class ClipboardViewModel: ObservableObject {
             editing.title = newTitle.isEmpty ? nil : newTitle
             editing.content = newContent
             editing.sourceRaw = ItemSource.manual.rawValue
-            try? modelContext.save()
+            save(modelContext)
         } else {
             // 新增模式
             let item = ClipboardItem(
@@ -76,7 +81,7 @@ final class ClipboardViewModel: ObservableObject {
                 source: .manual
             )
             modelContext.insert(item)
-            try? modelContext.save()
+            save(modelContext)
         }
 
         newTitle = ""
@@ -90,7 +95,7 @@ final class ClipboardViewModel: ObservableObject {
     func promoteToManual(_ item: ClipboardItem) {
         guard let modelContext else { return }
         item.sourceRaw = ItemSource.manual.rawValue
-        try? modelContext.save()
+        save(modelContext)
         fetchItems()
     }
 
@@ -108,7 +113,7 @@ final class ClipboardViewModel: ObservableObject {
 
         item.lastUsedAt = Date()
         item.useCount += 1
-        try? modelContext.save()
+        save(modelContext)
 
         PasteService.shared.copyAndPaste(item.content)
         fetchItems()
@@ -119,7 +124,7 @@ final class ClipboardViewModel: ObservableObject {
         guard let modelContext else { return }
 
         modelContext.delete(item)
-        try? modelContext.save()
+        save(modelContext)
         fetchItems()
     }
 
@@ -131,7 +136,7 @@ final class ClipboardViewModel: ObservableObject {
         if let existing = items.first(where: { $0.content == text }) {
             existing.lastUsedAt = Date()
             existing.useCount += 1
-            try? modelContext.save()
+            save(modelContext)
             fetchItems()
             return
         }
@@ -146,7 +151,7 @@ final class ClipboardViewModel: ObservableObject {
         let item = ClipboardItem(content: text, source: .auto)
         item.useCount = 1
         modelContext.insert(item)
-        try? modelContext.save()
+        save(modelContext)
         fetchItems()
     }
 
@@ -169,5 +174,14 @@ final class ClipboardViewModel: ObservableObject {
             }
         }
         return false
+    }
+
+    private func save(_ modelContext: ModelContext) {
+        do {
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            print("Failed to save clipboard item: \(error)")
+        }
     }
 }

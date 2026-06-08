@@ -6,6 +6,7 @@ final class ClipboardMonitor {
 
     private var timer: Timer?
     private var lastChangeCount: Int = 0
+    private let maxAutoRecordLength = 20_000
     /// 标记：是否正在执行应用自身的复制粘贴，避免重复记录
     var isInternalCopy = false
 
@@ -29,6 +30,9 @@ final class ClipboardMonitor {
 
             guard let text = NSPasteboard.general.string(forType: .string),
                   text.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2 else {
+                return
+            }
+            guard text.count <= self.maxAutoRecordLength else {
                 return
             }
 

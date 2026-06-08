@@ -37,7 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 设置 SwiftData 容器
-        let modelContainer = try! ModelContainer(for: ClipboardItem.self)
+        let modelContainer = makeModelContainer()
         viewModel.setup(modelContext: modelContainer.mainContext)
 
         // 设置 Popover 内容
@@ -62,6 +62,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.viewModel.addFromClipboard(text)
             }
         }
+    }
+
+    private func makeModelContainer() -> ModelContainer {
+        do {
+            let schema = Schema([ClipboardItem.self])
+            let storeURL = try textPocketStoreURL()
+            let configuration = ModelConfiguration(schema: schema, url: storeURL)
+            return try ModelContainer(for: schema, configurations: [configuration])
+        } catch {
+            fatalError("Failed to initialize TextPocket SwiftData store: \(error)")
+        }
+    }
+
+    private func textPocketStoreURL() throws -> URL {
+        let appSupportURL = try FileManager.default.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        let appDirectoryURL = appSupportURL.appendingPathComponent("TextPocket", isDirectory: true)
+        try FileManager.default.createDirectory(at: appDirectoryURL, withIntermediateDirectories: true)
+        return appDirectoryURL.appendingPathComponent("TextPocket.store")
     }
 
     @objc func handleStatusItemClick(_ sender: NSStatusBarButton) {

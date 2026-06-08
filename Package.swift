@@ -6,13 +6,11 @@ let package = Package(
     platforms: [
         .macOS(.v14)
     ],
-    dependencies: [
-        .package(path: "/tmp/HotKey")
-    ],
+    dependencies: [],
     targets: [
         .executableTarget(
             name: "TextPocket",
-            dependencies: ["HotKey"],
+            dependencies: [],
             path: "TextPocket",
             exclude: [
                 "Info.plist",
