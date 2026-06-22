@@ -31,16 +31,6 @@ struct RecordRowView: View {
                 }
 
                 Spacer()
-
-                if item.useCount > 0 {
-                    Text("×\(item.useCount)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.1))
-                        .cornerRadius(4)
-                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(8)

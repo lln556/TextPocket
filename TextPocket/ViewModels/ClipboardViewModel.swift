@@ -28,16 +28,14 @@ final class ClipboardViewModel: ObservableObject {
             .sorted { $0.lastUsedAt > $1.lastUsedAt }
     }
 
-    /// 常用文本（手动添加 + 使用次数 >= 3 的自动记录，按使用次数排序）
+    /// 常用文本（手动添加 + 从最近手动添加）
     var frequentItems: [ClipboardItem] {
-        let frequent = items.filter {
-            $0.source == .manual || $0.useCount >= 3
-        }
+        let frequent = items.filter { $0.source == .manual }
         if searchText.isEmpty {
-            return frequent.sorted { $0.useCount > $1.useCount }
+            return frequent.sorted { $0.lastUsedAt > $1.lastUsedAt }
         }
         return frequent.filter { matchesSearch($0) }
-            .sorted { $0.useCount > $1.useCount }
+            .sorted { $0.lastUsedAt > $1.lastUsedAt }
     }
 
     /// 当前 Tab 对应的列表
@@ -113,7 +111,6 @@ final class ClipboardViewModel: ObservableObject {
         guard let modelContext else { return }
 
         item.lastUsedAt = Date()
-        item.useCount += 1
         save(modelContext)
 
         PasteService.shared.copyAndPaste(item.content)
@@ -133,10 +130,9 @@ final class ClipboardViewModel: ObservableObject {
     func addFromClipboard(_ text: String) {
         guard let modelContext else { return }
 
-        // 去重：内容已存在则更新时间和次数
+        // 去重：内容已存在则更新时间
         if let existing = items.first(where: { $0.content == text }) {
             existing.lastUsedAt = Date()
-            existing.useCount += 1
             save(modelContext)
             fetchItems()
             return
@@ -150,7 +146,6 @@ final class ClipboardViewModel: ObservableObject {
         }
 
         let item = ClipboardItem(content: text, source: .auto)
-        item.useCount = 1
         modelContext.insert(item)
         save(modelContext)
         fetchItems()
@@ -194,7 +189,6 @@ final class ClipboardViewModel: ObservableObject {
         for item in fetchedItems {
             let key = "\(item.sourceRaw)\u{1F}\(item.content)"
             if let existing = itemsByKey[key] {
-                existing.useCount += item.useCount
                 existing.createdAt = min(existing.createdAt, item.createdAt)
                 existing.lastUsedAt = max(existing.lastUsedAt, item.lastUsedAt)
                 if existing.title == nil {
